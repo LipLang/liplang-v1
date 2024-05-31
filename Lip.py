@@ -273,3 +273,58 @@ def lip_repl(prompt='> ', remind=''):
 
 
 if __name__ == '__main__': lip_repl()
+
+'''
+- acos:  反余弦
+- asin:  反正弦
+- atan:  反正切
+- atan2:  双参数反正切，用于计算点的方位角
+- ceil:  向上取整
+- cos:  余弦
+- degrees:  弧度转角度
+- exp:  指数函数
+- fabs:  绝对值
+- factorial:  阶乘
+- floor:  向下取整
+- fmod:  浮点数取模
+- gcd:  最大公约数
+- hypot:  计算欧几里得距离
+- isclose:  比较两个浮点数是否接近
+- isfinite:  检查数值是否有限
+- isinf:  检查数值是否无穷大
+- isnan:  检查是否为 NaN
+- log:  自然对数
+- log10:  以 10 为底的对数
+- log2:  以 2 为底的对数
+- radians:  角度转弧度
+- sin:  正弦
+- sqrt:  平方根
+- tan:  正切
+- trunc:  截断小数部分
+
+- acosh:  反双曲余弦
+- asinh:  反双曲正弦
+- atanh:  反双曲正切
+- cbrt:  立方根
+- copysign:  复制符号
+- cosh:  双曲余弦
+- dist:  计算两点间的距离
+- erf:  误差函数
+- erfc:  互补误差函数
+- exp2:  2 的指数函数
+- expm1:  exp(x)-1 的精确计算
+- frexp:  将浮点数分解为尾数和指数
+- fsum:  精确浮点求和
+- gamma:  伽马函数
+- isqrt:  整数平方根
+- lcm:  最小公倍数
+- ldexp:  将浮点数与 2 的指数相乘
+- lgamma:  伽马函数的对数
+- log1p:  计算 log(1+x) 的精确值
+- modf:  将浮点数分解为整数和小数部分
+- prod:  计算迭代器中所有元素的积
+- perm:  排列数
+- comb:  组合数
+- nextafter:  计算最接近的可表示数
+- ulp:  单位最后位置
+'''

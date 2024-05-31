@@ -1,0 +1,8 @@
+(let get-larger (lambda (a,b): (case (> a b) b a None ) ))
+(get-larger 3 5)      #   5
+(get-larger -33 -55)  # -33
+
+(let find-largest (lambda (l):: (case (> (len l) 1): (car l): (get-larger (car l) (find-largest (cdr l))): (cdr l): None)))
+(find-largest  (range 1 11))  # 10
+(find-largest  {1 0 33 5})    # 33
+

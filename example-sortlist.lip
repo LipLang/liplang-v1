@@ -1,0 +1,6 @@
+# 选择排序
+(let sortlist (lambda (lst): (case (> (len lst) 0): _; (block (let temp-min (min lst)) (let temp-pos (find temp-min lst)) (cons temp-min (sortlist (delete temp-pos lst)))); None)))
+
+# 例子：使用 selection-sort 函数
+(let lll (quote (9 4 7 3 8 6)) )
+(sortlist lll)  # (3 4 6 7 8 9)

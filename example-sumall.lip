@@ -1,0 +1,8 @@
+(let sum  (lambda (l) (case (> (len l) 0):  0,  (+ (car l) (sum (cdr l))),  None)))
+(sum (range 0 101))
+# 5050
+
+(let sum2 (lambda (l) (case (islist l   ):  0,  (+ (car l) (sum (cdr l))),  None)))
+(sum2 (range 0 101))
+# 5050
+

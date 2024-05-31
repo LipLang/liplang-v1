@@ -1,0 +1,9 @@
+# 检查一个数字列表是否按升序排列：
+
+(let sorted? (lambda (l): (case (> (len l) 1): True; (&& (< (get 0 l) (get 1 l)) (sorted? (cdr l))); None)))
+
+(sorted? (range 1 11))
+# True
+
+(sorted? (insert 0 9 (range 1 11)))
+# False

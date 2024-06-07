@@ -1,7 +1,6 @@
 # A [Lip](https://githab.com/liplang/liplang) interpreter inspired by Peter Norvig's lispy:
 # - https://github.com/fluentpython/lispy/blob/main/original/norvig/lis.py
 # - https://github.com/fluentpython/lispy/blob/main/original/norvig/lispy.py
-# # TODO: use `load` to load user scripts.lip
 
 import re, sys, math
 import numpy as np
@@ -11,7 +10,7 @@ from collections import ChainMap
 from functools import reduce as py_reduce
 
 sys.setrecursionlimit(1000000) # 最大递归层数
-rsv_words = ['case', 'let', 'quote', 'lambda', 'block', 'retreat'] # 'True', 'False', 'None']
+rsv_words = ['case', 'let', 'quote', 'lambda', 'block', 'retreat', 'while', 'load', 'print',]
 global_env = ChainMap() # (list of dicts, faster and easier)
 
 class RetreatException(Exception):
@@ -22,7 +21,7 @@ class RetreatException(Exception):
 
 def tokenize(expr):
     "将字符串切为令牌(tokens)列表"
-    expr = re.sub(r'#.*', '', expr, flags=re.MULTILINE)  # 删除注释(#)和它的行后
+    expr = re.sub(r'#.*', '', '(block '+expr+')', flags=re.MULTILINE)  # 删除注释(#)和它的行后
     return (
         expr.replace('{', '(cons ').replace('}', ')').replace('[', '(quote ').replace(']', ')')
             .replace(':', ' ').replace(',', ' ').replace(';', ' ')
@@ -149,7 +148,7 @@ def do_apply(proc, args, env):
     else:
         raise TypeError("Not a callable procedure")
 
-def do_map(proc, lst, env):
+def do_map(proc, lst, env): # 使用map：当操作是纯函数、无副作用，而且需要生成新列表时。
     return [proc(x) for x in lst]
 
 def do_reduce(proc, lst, env):
@@ -173,7 +172,7 @@ lip_defined = {
     'nop':do_nop, 'car':do_car, 'cdr':do_cdr, 'list':do_list, 'cons':do_cons, 'eval':do_eval,
     'range':do_range, 'get': do_get, 'find':do_find, 'insert':do_insert, 'delete':do_delete,
     'apply':do_apply, 'map':do_map, 'reduce':do_reduce, 'filter':do_filter,
-    'alpha':0.00729735256, '_':[], # 'nil':[]
+    'alpha':0.00729735256, '_':[], # 'nil':[],
 } # alpha(~ 1/137.036) was not defined in math/operator/numpy...
 
 global_env.update(inner_defined)
@@ -205,6 +204,10 @@ def lip_eval(x, env=global_env):
             if isinstance(tobe_access, str): tobe_access = env[tobe_access]  # it is the list name? process it!
             if the_pos >= len(tobe_access): raise IndexError("Position out of bounds")
             return lip_eval(tobe_access[the_pos], env)
+        elif opper == 'while':  # (while test body)
+            (_, test, body) = x
+            while lip_eval(test, env): lip_eval(body, env)
+            return None  # no returns for loops
         elif opper == 'let':  # 单独写成函数的话, var会被eval
             (_, var, exp) = x
             the_exp = lip_eval(exp, env) # why,, really need?
@@ -228,6 +231,15 @@ def lip_eval(x, env=global_env):
             (_, exp) = x
             result = lip_eval(exp, env)
             raise RetreatException(result)  # 使用异常来传递返回值
+        elif opper == 'load': # (load filename)
+            (_, filename) = x
+            with open(filename, 'r', encoding='utf-8') as file: program = file.read()
+            expr = lip_parse(program)
+            lip_eval(expr, env)
+        elif opper == 'print': # (print expr)
+            (_, expr) = x
+            the_expr = lip_eval(expr)
+            print(unlexer(the_expr))
         else:  # (proc arg...) (函数名 参数1 参数2 ...)
             proc = lip_eval(opper, env)
             args = [lip_eval(arg, env) for arg in x[1:]]
@@ -248,11 +260,10 @@ def help(): # do_help(env=global_env)? 不用默认值, 因为那样会运行错
     print(f'\tas well as {lip_predef_num} Predefines in initial.')
     print(f'\nIt has {len(global_env)} defines in total now: {list(global_env.keys())}.')
     print('\nEye Candy: [a] => (quote a); {x y ...} => (cons x y ...); characters like ,:; => spaces.')
-    # print()
 
 def lip_repl(prompt='> ', remind=''):
-    " Read-Eval-Print: 循环持续地读取用户输入, 解析, 求值, 打印结果, 直到用户手动终止程序 "
-    print('\n\nWelcome to LIP programming 0.98!')
+    "Read-Eval-Print: 循环持续地读取用户输入, 解析, 求值, 打印结果, 直到用户手动终止程序"
+    print('\n\nWelcome to LIP programming 1.00!')
     help()
 
     while True:
@@ -273,58 +284,3 @@ def lip_repl(prompt='> ', remind=''):
 
 
 if __name__ == '__main__': lip_repl()
-
-'''
-- acos:  反余弦
-- asin:  反正弦
-- atan:  反正切
-- atan2:  双参数反正切，用于计算点的方位角
-- ceil:  向上取整
-- cos:  余弦
-- degrees:  弧度转角度
-- exp:  指数函数
-- fabs:  绝对值
-- factorial:  阶乘
-- floor:  向下取整
-- fmod:  浮点数取模
-- gcd:  最大公约数
-- hypot:  计算欧几里得距离
-- isclose:  比较两个浮点数是否接近
-- isfinite:  检查数值是否有限
-- isinf:  检查数值是否无穷大
-- isnan:  检查是否为 NaN
-- log:  自然对数
-- log10:  以 10 为底的对数
-- log2:  以 2 为底的对数
-- radians:  角度转弧度
-- sin:  正弦
-- sqrt:  平方根
-- tan:  正切
-- trunc:  截断小数部分
-
-- acosh:  反双曲余弦
-- asinh:  反双曲正弦
-- atanh:  反双曲正切
-- cbrt:  立方根
-- copysign:  复制符号
-- cosh:  双曲余弦
-- dist:  计算两点间的距离
-- erf:  误差函数
-- erfc:  互补误差函数
-- exp2:  2 的指数函数
-- expm1:  exp(x)-1 的精确计算
-- frexp:  将浮点数分解为尾数和指数
-- fsum:  精确浮点求和
-- gamma:  伽马函数
-- isqrt:  整数平方根
-- lcm:  最小公倍数
-- ldexp:  将浮点数与 2 的指数相乘
-- lgamma:  伽马函数的对数
-- log1p:  计算 log(1+x) 的精确值
-- modf:  将浮点数分解为整数和小数部分
-- prod:  计算迭代器中所有元素的积
-- perm:  排列数
-- comb:  组合数
-- nextafter:  计算最接近的可表示数
-- ulp:  单位最后位置
-'''

@@ -10,10 +10,10 @@ from collections import ChainMap
 from functools import reduce as py_reduce
 
 sys.setrecursionlimit(1000000) # 最大递归层数
-rsv_words = ['case', 'let', 'quote', 'lambda', 'block', 'retreat', 'while', 'load', 'print',]
+rsv_words = ['case', 'let', 'quote', 'lambda', 'block', 'release', 'while', 'load', 'print',]
 global_env = ChainMap() # (list of dicts, faster and easier)
 
-class RetreatException(Exception):
+class ReleaseException(Exception):
     def __init__(self, value):
         self.value = value
 
@@ -23,7 +23,7 @@ def tokenize(expr):
     "将字符串切为令牌(tokens)列表"
     expr = re.sub(r'#.*', '', '(block '+expr+')', flags=re.MULTILINE)  # 删除注释(#)和它的行后
     return (
-        expr.replace('{', '(cons ').replace('}', ')').replace('[', '(quote ').replace(']', ')')
+        expr.replace('{', '(quote (').replace('}', '))').replace('[', '(quote ').replace(']', ')')
             .replace(':', ' ').replace(',', ' ').replace(';', ' ')
             .replace('(', ' ( ').replace(')', ' ) ').replace('\t', ' ').replace('\n', ' ')
             .split()
@@ -134,11 +134,11 @@ def make_lambda(parms, body, env): # make_...
         couples = dict(zip(parms, args))
         local_env.update(couples) # 更新局部变量
         return lip_eval(body, local_env)  # 评估函数体
-        # 不在lambda中直接引入retreat...
+        # 不在lambda中直接引入release...
         # try:
         #     return lip_eval(body, local_env)  # 评估函数体
-        # except RetreatException as e:
-        #     return e.value  # 捕获 RetreatException 并返回其值
+        # except ReleaseException as e:
+        #     return e.value  # 捕获 ReleaseException 并返回其值
     return lambda_function
 
 def do_apply(proc, args, env):
@@ -225,12 +225,12 @@ def lip_eval(x, env=global_env):
                 block_value = None
                 for sub_expr in x[1:]: block_value = lip_eval(sub_expr, env)
                 return block_value
-            except RetreatException as e:
+            except ReleaseException as e:
                 return e.value
-        elif opper == 'retreat': # (retreat exp) in `block` only!!
+        elif opper == 'release': # (release exp) in `block` only!!
             (_, exp) = x
             result = lip_eval(exp, env)
-            raise RetreatException(result)  # 使用异常来传递返回值
+            raise ReleaseException(result)  # 使用异常来传递返回值
         elif opper == 'load': # (load filename)
             (_, filename) = x
             with open(filename, 'r', encoding='utf-8') as file: program = file.read()
@@ -259,9 +259,9 @@ def help(): # do_help(env=global_env)? 不用默认值, 因为那样会运行错
     print(f'\nThe language has\n\t{len(rsv_words)} Reserved Words: {rsv_words},\n\t{6} Data Types: int, float, bool, None, func, list,')
     print(f'\tas well as {lip_predef_num} Predefines in initial.')
     print(f'\nIt has {len(global_env)} defines in total now: {list(global_env.keys())}.')
-    print('\nEye Candy: [a] => (quote a); {x y ...} => (cons x y ...); characters like ,:; => spaces.')
+    print('\nEye Candy: [a] => (quote a); {x y ...} => (quote (x y ...)); characters like ,:; => spaces.')
 
-def lip_repl(prompt='> ', remind=''):
+def lip_repl(prompt='lip> ', remind=''):
     "Read-Eval-Print: 循环持续地读取用户输入, 解析, 求值, 打印结果, 直到用户手动终止程序"
     print('\n\nWelcome to LIP programming 1.00!')
     help()
